@@ -27,8 +27,3 @@ class BioFuseLate(nn.Module):
 
         return fused_logits
 
-    def encode_image(self, images):
-        return self.image_encoder(images)
-
-    def encode_text(self, input_ids, attention_mask):
-        return self.text_encoder(input_ids, attention_mask)

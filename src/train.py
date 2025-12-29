@@ -4,6 +4,35 @@ from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
 import os
+from data_preprocessing import MIMIC_MultiModalDataset
+
+image_dir="/home/eshakya/Disease_Classification/Reducing_Burden/mimic-cxr/mimic-cxr-jpg"
+report_dir="/home/eshakya/Disease_Classification/Reducing_Burden/present_code/exp7/"
+
+# Step 2: Preprocess the data
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+#     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+
+    # Dataset and Dataloader
+train_dataset = MIMIC_MultiModalDataset(
+    image_dir=image_dir,
+    report_dir=report_dir,
+    mode='train',transform=transform)
+val_dataset = MIMIC_MultiModalDataset(
+    image_dir=image_dir,
+    report_dir=report_dir,
+    mode='val',transform=transform
+)
+test_dataset = MIMIC_MultiModalDataset(
+    image_dir=image_dir,
+    report_dir=report_dir,
+    mode='test',transform=transform
+)
+
 
 num_epochs = 20
 patience = 10

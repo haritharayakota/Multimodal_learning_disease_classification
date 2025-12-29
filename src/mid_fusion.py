@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-import vision_encoder
-import text_encoder
-import Co_attention
+from vision_encoder import SwinEncoder
+from text_encoder import TextEncoder
+from Co_Attention import CoAttentionFusion
 
 class BioFuse(nn.Module):
     def __init__(self, embed_dim=768, num_classes=14):
