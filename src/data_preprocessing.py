@@ -1,19 +1,11 @@
+import torch
+import torch.nn as nn
+
 class MIMIC_MultiModalDataset(Dataset):
     def __init__(self, image_dir, report_dir, mode="train", transform=None, master_csv=None):
-        """
-        Args:
-            image_dir (str): Path to the image directory
-            report_dir (str): Path where CSV files (train/val/test) are stored
-            mode (str): 'train', 'val', or 'test'
-            transform: Optional torchvision transforms for images
-            master_csv (str): Optional path to a master CSV (will be split automatically
-                              if train/val/test CSVs don't exist yet)
-        """
         self.image_dir = image_dir
         self.report_dir = report_dir
         self.transform = transform
-
-        # Map mode to correct CSV file
         mode_map = {
             "train": "mimic_train_augmented.csv",
             "val": "mimic_validation.csv",
@@ -21,24 +13,13 @@ class MIMIC_MultiModalDataset(Dataset):
         }
         if mode not in mode_map:
             raise ValueError(f"Invalid mode {mode}. Choose from 'train', 'val', 'test'.")
-
-        # Check if CSVs exist; if not, split the master CSV
         expected_csv = os.path.join(report_dir, mode_map[mode])
-        print(mode_map[mode])
-
-
-        # Load the mode-specific CSV
         self.data = pd.read_csv(expected_csv)
-
-        # Extract useful columns
         self.img_name = self.data["paths"]
         self.report_summary = self.data["findings"]
 
         self.targets = self.data.drop(columns=["id", "findings","paths","Unnamed: 0","file_path","impression","subject_id","study_id"]).values.tolist()
         disease_classes = self.data.drop(columns=["id", "findings","paths","Unnamed: 0","file_path","impression","subject_id","study_id"]).columns.tolist()
-        print(disease_classes)
-
-        # NLP preprocessing setup
         self.stop_words = set(stopwords.words("english"))
         self.keywords = [
             'normal', 'effusion', 'pneumonia', 'cardiopulmonary', 'opacity', 'atelectasis', 'no finding',
@@ -50,8 +31,6 @@ class MIMIC_MultiModalDataset(Dataset):
 
     def __len__(self):
         return len(self.report_summary)
-
-
 
     def preprocess_text(self, text):
         if isinstance(text, str):
@@ -71,21 +50,14 @@ class MIMIC_MultiModalDataset(Dataset):
         return report
 
     def __getitem__(self, index):
-        # Load image
         img_file = self.img_name.iloc[index]
         img_path = os.path.join(self.image_dir, img_file)
-        #print(img_path)
         image = Image.open(img_path).convert("RGB")
-
         if self.transform:
             image = self.transform(image)
-
-        # Preprocess and redact text
         report = str(self.report_summary.iloc[index])
         cleaned_text = self.preprocess_text(report)
         #redacted_text = self.redact_keywords(cleaned_text)
-
-        # Multi-hot labels
         labels = torch.tensor(self.targets[index], dtype=torch.float)
 
         return {

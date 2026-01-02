@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 
 class TextEncoder(nn.Module):
-
     
     def __init__(self, model_name="emilyalsentzer/Bio_ClinicalBERT", embed_dim=768):
         super(TextEncoder, self).__init__()

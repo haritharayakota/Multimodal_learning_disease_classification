@@ -14,25 +14,13 @@ class UltraEarlyFusion(nn.Module):
         self.max_text_len = max_text_len
         self.word2vec_path = word2vec_path
         self.freeze_w2v = freeze_w2v
-
-        # Initially, no embeddings or vocab
         self.embedding_layer = None
         self.token_to_idx = None
-        
-        # Positional embeddings for text
         self.text_pos_embeddings = nn.Embedding(max_text_len, embed_dim)
-        
-        # --- Image patch projection (no Conv2D) ---
         self.patch_proj = nn.Linear(3 * patch_size * patch_size, embed_dim)
-        
-        # Positional embeddings for image patches
         self.img_pos_embed = nn.Parameter(torch.zeros(1, 1000, embed_dim))
-        
-        # --- Shared Transformer ---
         encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=10, batch_first=True)
         self.shared_encoder = nn.TransformerEncoder(encoder_layer, num_layers=6)
-        
-        # --- Classification head ---
         self.classifier = nn.Linear(embed_dim, num_classes)
 
     def build_vocab_from_batch(self, texts, min_freq=1):
@@ -44,10 +32,7 @@ class UltraEarlyFusion(nn.Module):
 
         vocab = [w for w, f in counter.items() if f >= min_freq]
         print(f"[Vocab built with {len(vocab)} tokens]")
-
-        # Load Word2Vec
-        w2v_model = gensim.models.KeyedVectors.load_word2vec_format(self.word2vec_path, binary=True)
-        
+        w2v_model = gensim.models.KeyedVectors.load_word2vec_format(self.word2vec_path, binary=True)       
         token_to_idx = {"<PAD>": 0}
         embedding_matrix = [torch.zeros(self.embed_dim)]
         
@@ -79,35 +64,21 @@ class UltraEarlyFusion(nn.Module):
         padded = pad_sequence(tokenized, batch_first=True, padding_value=0)
         return padded
     def forward(self, images, raw_texts):
-        device = images.device  # ✅ ensure all tensors use same device
+        device = images.device
         B, C, H, W = images.shape
-
-    # --- Image patches ---
         patches = images.unfold(2, self.patch_size, self.patch_size) \
         .unfold(3, self.patch_size, self.patch_size)
         patches = patches.contiguous().view(B, C, -1, self.patch_size, self.patch_size)
-        patches = patches.permute(0, 2, 1, 3, 4)
-    
+        patches = patches.permute(0, 2, 1, 3, 4)    
         patches = patches.flatten(2)
         img_tokens = self.patch_proj(patches)
         img_tokens = img_tokens + self.img_pos_embed[:, :img_tokens.size(1), :].to(device)
-
-    # --- Text tokens ---
-        token_ids = self.encode_texts(raw_texts).to(device)  # padded token IDs on GPU
-        pos_ids = torch.arange(token_ids.size(1), device=device)  # positional indices on same device
-        pos_embed = self.text_pos_embeddings(pos_ids)  # already on model's device
-
-    # Ensure embedding layer is on the correct device too
+        token_ids = self.encode_texts(raw_texts).to(device) 
+        pos_ids = torch.arange(token_ids.size(1), device=device) 
+        pos_embed = self.text_pos_embeddings(pos_ids)
         self.embedding_layer = self.embedding_layer.to(device)
         txt_tokens = self.embedding_layer(token_ids) + pos_embed.unsqueeze(0)
-
-    # --- Combine tokens ---
         combined_tokens = torch.cat((img_tokens, txt_tokens), dim=1)
-
-    # --- Shared Transformer ---
         fused_tokens = self.shared_encoder(combined_tokens)
-
-    # --- Mean pooling (better than first-token) ---
         pooled_rep = fused_tokens.mean(dim=1)
-
         return self.classifier(pooled_rep)

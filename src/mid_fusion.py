@@ -7,7 +7,6 @@ from Co_Attention import CoAttentionFusion
 class BioFuse(nn.Module):
     def __init__(self, embed_dim=768, num_classes=14):
         super().__init__()
-
         self.image_encoder = SwinEncoder(embed_dim)
         self.text_encoder = TextEncoder(embed_dim=embed_dim)
         self.fusion = CoAttentionFusion(embed_dim)
@@ -19,9 +18,5 @@ class BioFuse(nn.Module):
         fused_feat = self.fusion(img_feat, txt_feat)
         return self.classifier(fused_feat)
 
-    def encode_image(self, images):
-        return self.image_encoder(images)
 
-    def encode_text(self, input_ids, attention_mask):
-        return self.text_encoder(input_ids, attention_mask)
 
