@@ -42,8 +42,7 @@ def forward_model(model, model_name, images, text):
 
 def test(model,test_dataset):
     test_loader = DataLoader(
-        test_dataset, batch_size=16, shuffle=False, num_workers=4
-    )
+        test_dataset, batch_size=32, shuffle=False)
 
     criterion = torch.nn.BCEWithLogitsLoss()
     model.load_state_dict(torch.load(args.model_path, map_location=device))
