@@ -51,8 +51,8 @@ def train(model,train_dataset,val_dataset,model_name="early_fusion"):
     train_losses, val_losses = [], []
     best_val_loss = float('inf')
     epochs_no_improve = 0
-    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
     model = model.to(device)
     optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()),
                               lr=2e-5, weight_decay=1e-3)
