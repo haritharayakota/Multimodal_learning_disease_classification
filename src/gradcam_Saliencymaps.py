@@ -122,7 +122,7 @@ test_dataset = MIMIC_MultiModalDataset(
     report_dir=report_dir,
     mode='test',transform=transform
     )
-report_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16, shuffle=True)
+report_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=True)
 
 text_encoder_type = "emilyalsentzer/Bio_ClinicalBERT"  # ClinicalBERT
 tokenizer = AutoTokenizer.from_pretrained(text_encoder_type)
