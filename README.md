@@ -42,8 +42,9 @@ python src/train.py --model late_fusion
 ---
 ## Evaluation & Interpretability
 Generate metrics, Grad-CAM heatmaps, and saliency maps from a trained checkpoint:
+
 ```bash
-python src/evaluate.py --checkpoint path/to/model.pt
+python src/evaluate.py --model_name early_fusion --model_path path/to/model.pth
 ```
 ---
 
