@@ -26,18 +26,18 @@ Train any of the three fusion strategies evaluated in the paper by passing the `
 ### Early Fusion
 Combines modality features at an early stage before deep representation learning.
 ```bash
-python src/train.py --fusion early
+python src/train.py --fusion early_fusion
 ```
 
 ### Mid Fusion (Best-Performing BioFuse Model)
 Leverages the Hierarchical Bidirectional Co-Attention mechanism to dynamically fuse latent features.
 ```bash
-python src/train.py --fusion mid
+python src/train.py --fusion mid_fusion
 ```
 ### Late Fusion
 Aggregates independent modality predictions at the final decision layer.
 ```bash
-python src/train.py --fusion late
+python src/train.py --fusion late_fusion
 ```
 ---
 ## Evaluation & Interpretability
@@ -47,4 +47,3 @@ python src/evaluate.py --checkpoint path/to/model.pt
 ```
 ---
 
-python src/evaluation.py --checkpoint path/to/model.pt
